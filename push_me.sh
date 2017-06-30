@@ -2,7 +2,7 @@
 
 HOST=localhost
 PORT=9000
-INFO='{
+GOOD_INFO='{
   "sysinfo": {
     "version": "0.9.1",
     "timestamp": "2016-09-24T13:30:28.369498856+02:00"
@@ -47,7 +47,7 @@ INFO='{
   },
   "cpu": {
     "vendor": "GenuineIntel",
-    "model": "Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz",
+    "model": "Intel(R)2.40GHz",
     "speed": 2400,
     "cache": 20480,
     "cpus": 1,
@@ -83,9 +83,9 @@ BAD_INFO='{"test":11}'
 
 
 if [ "$1" == "BAD" ]; then
-  echo "$1"
-  echo $BAD_INFO
   echo -n "$BAD_INFO" | nc -4u -w1 $HOST $PORT
+  echo "BAD_INFO sent"
 else
-  echo -n "$INFO" | nc -4u -w1 $HOST $PORT
+  echo -n "$GOOD_INFO" | nc -4u -w1 $HOST $PORT
+  echo "GOOD_INFO sent"
 fi

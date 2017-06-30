@@ -49,50 +49,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error: %s", err)
 	}
+	defer server.db.Close()
 
-	switch p := *proto; p {
-	case "tcp":
-		// tcp
-		udpAddr, err := net.ResolveTCPAddr("tcp", service)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-		// setup listener for incoming TCP connection
-		ln, err := net.ListenTCP("tcp", udpAddr)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-		defer ln.Close()
-
-		fmt.Println("Server up over proto", *proto, "and listening on port", *port)
-
-		for {
-			// wait for TCP client to connect
-			conn, err := ln.Accept()
-			if err != nil {
-				log.Fatalf("Error: %s", err)
-			}
-			handleTCPConnection(conn, server)
-		}
-	default:
-		// udp
-		udpAddr, err := net.ResolveUDPAddr("udp4", service)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-		// setup listener for incoming UDP connection
-		ln, err := net.ListenUDP("udp", udpAddr)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-		ln.SetReadBuffer(maxDatagramSize)
-		defer ln.Close()
-
-		fmt.Println("Server up over proto", *proto, "and listening on port", *port)
-
-		for {
-			// wait for UDP client to connect
-			handleUDPConnection(ln, server)
-		}
+	udpAddr, err := net.ResolveUDPAddr("udp4", service)
+	if err != nil {
+		log.Fatalf("Error: %s", err)
 	}
+	// setup listener for incoming UDP connection
+	ln, err := net.ListenUDP("udp", udpAddr)
+	if err != nil {
+		log.Fatalf("Error: %s", err)
+	}
+	ln.SetReadBuffer(maxDatagramSize)
+	defer ln.Close()
+
+	fmt.Println("Server up over proto", *proto, "and listening on port", *port)
+
+	for {
+		// wait for UDP client to connect
+		handleUDPConnection(ln, server)
+	}
+
 }

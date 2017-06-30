@@ -56,16 +56,16 @@ func writeToDb(msg []byte, s *server) {
 		err := Put(s, "bucket", si.Node.MachineID, msg)
 		if err != nil {
 			log.Printf("Error: %s", err)
-			// log.Fatalf("Error: %s", err)
 		}
 
-		fmt.Printf("%+v\n", si.Node.MachineID)
+		log.Printf("%+v\n", si.Node.MachineID)
 
 		data, err := Get(s, "bucket", si.Node.MachineID)
 		if err != nil {
 			log.Fatalf("Error: %s", err)
 		}
-		fmt.Println(string(data))
+		log.Println(string(data))
+	} else {
+		fmt.Println(string(msg), "wasn't write")
 	}
-	fmt.Println(string(msg))
 }
