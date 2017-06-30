@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/mvaleev/sysinfo"
+	"github.com/microex/sysinfo"
 )
 
 const (
@@ -17,9 +17,8 @@ const (
 )
 
 var (
-	si     sysinfo.SysInfo
 	host   = flag.String("host", "0.0.0.0", "The sysinfo-server address.")
-	port   = flag.String("port", "9999", "The sysinfo-server port.")
+	port   = flag.String("port", "9000", "The sysinfo-server port.")
 	proto  = flag.String("proto", "udp", "UDP or TCP.")
 	dbFile = "bolt.db"
 )
@@ -63,23 +62,30 @@ func Get(s *server, bucket, key string) (data []byte, err error) {
 }
 
 func writeToDb(msg []byte, s *server) {
+	var si sysinfo.SysInfo
 	if err := json.Unmarshal(msg, &si); err != nil {
 		log.Println(err)
 	}
+	if si.Node.MachineID != "" {
+		err := Put(s, "bucket", si.Node.MachineID, msg)
+		if err != nil {
+			log.Printf("Error: %s", err)
+			// log.Fatalf("Error: %s", err)
+		}
 
-	err := Put(s, "bucket", si.Node.MachineID, msg)
-	if err != nil {
-		log.Fatalf("Error: %s", err)
+		fmt.Printf("%+v\n", si.Node.MachineID)
+
+		data, err := Get(s, "bucket", si.Node.MachineID)
+		if err != nil {
+			log.Fatalf("Error: %s", err)
+		}
+		fmt.Println(string(data))
 	}
-	fmt.Printf("%+v\n", si.Node.MachineID)
-
-	data, _ := Get(s, "bucket", si.Node.MachineID)
-	fmt.Println(string(data))
+	fmt.Println(string(msg))
 }
 
 func handleUDPConnection(conn *net.UDPConn, s *server) {
 	buffer := make([]byte, maxDatagramSize)
-
 	n, _, err := conn.ReadFromUDP(buffer)
 	if err != nil {
 		log.Fatalf("Error: %s", err)
