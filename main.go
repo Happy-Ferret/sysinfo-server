@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+
+	"github.com/boltdb/bolt"
 )
 
 const (
@@ -12,10 +15,11 @@ const (
 )
 
 var (
-	host   = flag.String("host", "0.0.0.0", "The sysinfo-server address.")
-	port   = flag.String("port", "9000", "The sysinfo-server port.")
-	proto  = flag.String("proto", "udp", "UDP or TCP.")
-	dbFile = "bolt.db"
+	host               = flag.String("host", "0.0.0.0", "The sysinfo-server address.")
+	uport              = flag.String("uport", "9000", "The sysinfo-server udp port.")
+	tport              = flag.String("tport", "9000", "The sysinfo-server http managment port.")
+	dbFile             = "bolt.db"
+	databaseConnection server
 )
 
 func handleUDPConnection(conn *net.UDPConn, s *server) {
@@ -28,27 +32,36 @@ func handleUDPConnection(conn *net.UDPConn, s *server) {
 	go writeToDb(buffer[:n], s)
 }
 
-func handleTCPConnection(conn net.Conn, s *server) {
-	buffer := make([]byte, maxDatagramSize)
+func handler(w http.ResponseWriter, r *http.Request) {
+	var output []string
+	databaseConnection.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("bucket"))
+		if err := b.ForEach(func(key []byte, value []byte) error {
+			output = append(output, string(value))
+			return nil
+		}); err != nil {
+			return err
+		}
+		return nil
+	})
+	fmt.Fprintf(w, "%v", output)
+}
 
-	n, err := conn.Read(buffer)
-	if err != nil {
-		log.Fatalf("Error: %s", err)
-	}
-	defer conn.Close()
-
-	go writeToDb(buffer[:n], s)
+func httpServer() {
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(*host+":"+*tport, nil)
 }
 
 func main() {
 	flag.Parse()
-	service := *host + ":" + *port
+	service := *host + ":" + *uport
 
 	// bolt
 	server, err := newServer(dbFile)
 	if err != nil {
 		log.Fatalf("Error: %s", err)
 	}
+	databaseConnection = *server
 	defer server.db.Close()
 
 	udpAddr, err := net.ResolveUDPAddr("udp4", service)
@@ -63,11 +76,13 @@ func main() {
 	ln.SetReadBuffer(maxDatagramSize)
 	defer ln.Close()
 
-	fmt.Println("Server up over proto", *proto, "and listening on port", *port)
+	go httpServer()
+
+	log.Println("Server up over proto udp and listening on port", *uport)
+	log.Println("HTTP managment Server up and listening on port", *tport)
 
 	for {
 		// wait for UDP client to connect
 		handleUDPConnection(ln, server)
 	}
-
 }

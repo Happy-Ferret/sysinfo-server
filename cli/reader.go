@@ -21,20 +21,6 @@ func newServer(filename string) (s *server, err error) {
 	return
 }
 
-// Get comment
-func Get(s *server, bucket, key string) (data []byte, err error) {
-	s.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucket))
-		r := b.Get([]byte(key))
-		if r != nil {
-			data = make([]byte, len(r))
-			copy(data, r)
-		}
-		return nil
-	})
-	return
-}
-
 func main() {
 	// bolt
 	server, err := newServer(dbFile)
