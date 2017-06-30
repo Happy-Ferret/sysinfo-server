@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/boltdb/bolt"
 )
@@ -22,6 +23,11 @@ var (
 	databaseConnection server
 )
 
+// Env exported
+type Env struct {
+	db *bolt.DB
+}
+
 func handleUDPConnection(conn *net.UDPConn, s *server) {
 	buffer := make([]byte, maxDatagramSize)
 	n, _, err := conn.ReadFromUDP(buffer)
@@ -32,28 +38,31 @@ func handleUDPConnection(conn *net.UDPConn, s *server) {
 	go writeToDb(buffer[:n], s)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func (env *Env) handler(w http.ResponseWriter, r *http.Request) {
 	var output []string
-	databaseConnection.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("bucket"))
-		if err := b.ForEach(func(key []byte, value []byte) error {
-			output = append(output, string(value))
-			return nil
-		}); err != nil {
-			return err
-		}
-		return nil
-	})
+
 	fmt.Fprintf(w, "%v", output)
 }
 
-func httpServer() {
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(*host+":"+*tport, nil)
+// func httpServer() {
+// 	http.HandleFunc("/", handler)
+// 	http.ListenAndServe(*host+":"+*tport, nil)
+// }
+
+func init() {
+	flag.Parse()
+	db, err := bolt.Open(dbFile, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		log.Printf("Error: %s", err)
+	}
 }
 
+func httpServer() {
+	env := &Env{db: db}
+	http.HandleFunc("/", env.handler)
+	http.ListenAndServe(*host+":"+*tport, nil)
+}
 func main() {
-	flag.Parse()
 	service := *host + ":" + *uport
 
 	// bolt
@@ -75,8 +84,6 @@ func main() {
 	}
 	ln.SetReadBuffer(maxDatagramSize)
 	defer ln.Close()
-
-	go httpServer()
 
 	log.Println("Server up over proto udp and listening on port", *uport)
 	log.Println("HTTP managment Server up and listening on port", *tport)

@@ -33,6 +33,22 @@ func Put(s *server, bucket, key string, val []byte) error {
 	})
 }
 
+// GetAll comment
+func GetAll(s *server) (data []string, err error) {
+	var output []string
+	s.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("bucket"))
+		if err := b.ForEach(func(key []byte, value []byte) error {
+			output = append(output, string(value))
+			return nil
+		}); err != nil {
+			return err
+		}
+		return nil
+	})
+	return output, nil
+}
+
 // Get comment
 func Get(s *server, bucket, key string) (data []byte, err error) {
 	s.db.View(func(tx *bolt.Tx) error {

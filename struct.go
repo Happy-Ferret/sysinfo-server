@@ -1,5 +1,6 @@
 package main
 
+// SysInfo type anything
 type SysInfo struct {
 	Node    Node            `json:"node"`
 	OS      OS              `json:"os"`
