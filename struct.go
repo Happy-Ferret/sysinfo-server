@@ -1,5 +1,6 @@
 package main
 
+// SysInfo description
 type SysInfo struct {
 	Node    Node            `json:"node"`
 	OS      OS              `json:"os"`
@@ -9,12 +10,14 @@ type SysInfo struct {
 	Network []NetworkDevice `json:"network,omitempty"`
 }
 
+// Node description
 type Node struct {
 	Hostname   string `json:"hostname,omitempty"`
 	MachineID  string `json:"machineid,omitempty"`
 	Hypervisor string `json:"hypervisor,omitempty"`
 }
 
+// OS description
 type OS struct {
 	Vendor  string `json:"vendor,omitempty"`
 	Version string `json:"version,omitempty"`

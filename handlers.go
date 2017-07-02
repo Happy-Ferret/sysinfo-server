@@ -19,7 +19,7 @@ func handleUDPConnection(conn *net.UDPConn) {
 	go writeToDb(buffer[:n])
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handlerHTTP(w http.ResponseWriter, r *http.Request) {
 	var output []string
 	dbc.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("bucket"))
@@ -31,10 +31,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 		return nil
 	})
+	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "%v", output)
 }
 
 func httpServer() {
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/", handlerHTTP)
 	http.ListenAndServe(*host+":"+*tport, nil)
 }

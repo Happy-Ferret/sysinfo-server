@@ -10,7 +10,6 @@ import (
 
 // Put comment
 func Put(bucket, key string, val []byte) error {
-
 	return dbc.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucket))
 		if err != nil {

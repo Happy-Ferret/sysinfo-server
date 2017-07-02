@@ -29,19 +29,12 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer dbc.Close()
 	log.Println(dbc, "connected")
 }
 
-// func newServer(filename string) (s *server, err error) {
-// 	s = &server{}
-// 	s.db, err = bolt.Open(filename, 0600, &bolt.Options{Timeout: 1 * time.Second})
-// 	return
-// }
-
 func main() {
 	service := *host + ":" + *uport
-
+	defer dbc.Close()
 	udpAddr, err := net.ResolveUDPAddr("udp4", service)
 	if err != nil {
 		log.Fatalf("Error: %s", err)
@@ -52,11 +45,10 @@ func main() {
 		log.Fatalf("Error: %s", err)
 	}
 	ln.SetReadBuffer(maxDatagramSize)
+	log.Println("Server up over proto udp and listening on port", *uport)
 	defer ln.Close()
 
 	go httpServer()
-
-	log.Println("Server up over proto udp and listening on port", *uport)
 	log.Println("HTTP managment Server up and listening on port", *tport)
 
 	for {
