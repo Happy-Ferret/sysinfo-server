@@ -1,12 +1,24 @@
 package main
 
+// MachineID description
+type MachineID struct {
+	MachineID string `json:"machineid"`
+	Hostname  string `json:"hostname"`
+}
+
+// Packages description
+type Packages struct {
+	Packages []string `json:"packages"`
+}
+
 // SysInfo description
 type SysInfo struct {
-	Node    Node            `json:"node"`
-	OS      OS              `json:"os"`
-	Kernel  Kernel          `json:"kernel"`
-	CPU     CPU             `json:"cpu"`
-	Memory  Memory          `json:"memory"`
+	Node    Node            `json:"node,omitempty"`
+	OS      OS              `json:"os,omitempty"`
+	Kernel  Kernel          `json:"kernel,omitempty"`
+	CPU     CPU             `json:"cpu,omitempty"`
+	Memory  Memory          `json:"memory,omitempty"`
+	LVM     []LogicalVolume `json:"lvm,omitempty"`
 	Network []NetworkDevice `json:"network,omitempty"`
 }
 
@@ -23,20 +35,32 @@ type OS struct {
 	Version string `json:"version,omitempty"`
 }
 
+// Kernel description
 type Kernel struct {
 	Release string `json:"release,omitempty"`
 }
 
+// CPU description
 type CPU struct {
 	Model string `json:"model,omitempty"`
 	Cores uint   `json:"cores,omitempty"`
 }
 
+// Memory description
 type Memory struct {
 	Size uint `json:"size,omitempty"`
 }
 
+// LogicalVolume description
+type LogicalVolume struct {
+	LVName string  `json:"lvname,omitempty"`
+	VGName string  `json:"vgname,omitempty"`
+	LVSize float64 `json:"lvsize,omitempty"`
+}
+
+// NetworkDevice description
 type NetworkDevice struct {
-	Name string `json:"name,omitempty"`
-	IP   string `json:"ip,omitempty"`
+	Name       string `json:"name,omitempty"`
+	MACAddress string `json:"macaddress,omitempty"`
+	IP         string `json:"ip,omitempty"`
 }
