@@ -3,22 +3,27 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"strings"
 )
 
-/*
-CREATE TABLE IF NOT EXISTS servers
-(id SERIAL,
-machineid TEXT NOT NULL,
+const tableCreationQuery = `CREATE TABLE IF NOT EXISTS servers
+(machineid TEXT NOT NULL PRIMARY KEY,
 hostname TEXT NOT NULL,
 data jsonb
-);
-*/
+)`
+
+func ensureTableExists() {
+	if _, err := a.DB.Exec(tableCreationQuery); err != nil {
+		log.Fatal(err)
+	}
+}
 
 func getMachineIDs(db *sql.DB) ([]MachineID, error) {
 	mm := []MachineID{}
 
-	rows, err := db.Query("SELECT machineid,hostname FROM servers")
+	rows, err := db.Query(
+		"SELECT machineid,hostname FROM servers")
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +71,6 @@ func getSysInfoByMI(db *sql.DB, machineid string) (SysInfo, error) {
 
 	row := db.QueryRow(
 		"SELECT data FROM servers WHERE machineid = $1", machineid)
-
 	err = row.Scan(&s)
 	if err != nil {
 		return si, err
@@ -76,4 +80,25 @@ func getSysInfoByMI(db *sql.DB, machineid string) (SysInfo, error) {
 		return si, err
 	}
 	return si, nil
+}
+
+func writeDataToDB(db *sql.DB, msg []byte) error {
+	var si SysInfo
+	var err error
+
+	err = json.Unmarshal(msg, &si)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(
+		`INSERT INTO servers VALUES ($1, $2, $3)
+    ON CONFLICT (machineid) DO UPDATE SET
+    hostname = $2,
+    data = $3`, si.Node.MachineID, si.Node.Hostname, string(msg))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -1,25 +1,20 @@
 package main
 
-import (
-	"encoding/json"
-	"fmt"
+import "flag"
+
+var (
+	netPort = flag.String("netPort", "9000", "The sysinfo-server netPort.")
+	proto   = flag.String("proto", "udp", "UDP or TCP.")
+	webPort = flag.String("webPort", "8088", "The sysinfo-server webPort.")
+	a       = App{}
 )
 
-func main() {
-	a := App{}
+func init() {
 	a.Initialize("sysinfo", "sysinfo", "sysinfo", "127.0.0.1")
-
-	d, _ := getMachineIDs(a.DB)
-	dd, _ := json.Marshal(d)
-	fmt.Println(string(dd))
-
-	p, _ := getPackagesByMI(a.DB, `19e5190061f94c9498a9951f8df592a3`)
-	pp, _ := json.Marshal(p)
-	fmt.Println(string(pp))
-
-	s, _ := getSysInfoByMI(a.DB, `19e5190061f94c9498a9951f8df592a3`)
-	ss, _ := json.Marshal(s)
-	fmt.Println(string(ss))
-
-	a.Run(":8080")
+	ensureTableExists()
+	flag.Parse()
+}
+func main() {
+	go startNetServer()
+	a.Run(":" + *webPort)
 }
