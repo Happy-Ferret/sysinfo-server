@@ -4,7 +4,7 @@ import "flag"
 
 var (
 	netPort = flag.String("netPort", "9000", "The sysinfo-server netPort.")
-	proto   = flag.String("proto", "udp", "UDP or TCP.")
+	proto   = flag.String("proto", "tcp", "UDP or TCP.")
 	webPort = flag.String("webPort", "8088", "The sysinfo-server webPort.")
 	a       = App{}
 )

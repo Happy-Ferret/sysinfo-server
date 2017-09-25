@@ -16,7 +16,28 @@ func startNetServer() {
 	service := "0.0.0.0:" + *netPort
 
 	switch p := *proto; p {
-	case "tcp":
+	case "udp":
+		// udp
+		udpAddr, err := net.ResolveUDPAddr("udp4", service)
+		if err != nil {
+			log.Fatalf("Error: %s", err)
+		}
+		// setup listener for incoming UDP connection
+		ln, err := net.ListenUDP("udp", udpAddr)
+		if err != nil {
+			log.Fatalf("Error: %s", err)
+		}
+		ln.SetReadBuffer(maxDatagramSize)
+		defer ln.Close()
+
+		log.Println("Server up over proto", *proto, "and listening on port", *netPort)
+
+		for {
+			// wait for UDP client to connect
+			handleUDPConnection(ln)
+		}
+
+	default:
 		// tcp
 		udpAddr, err := net.ResolveTCPAddr("tcp", service)
 		if err != nil {
@@ -39,28 +60,7 @@ func startNetServer() {
 			}
 			handleTCPConnection(conn)
 		}
-	default:
-		// udp
-		udpAddr, err := net.ResolveUDPAddr("udp4", service)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-		// setup listener for incoming UDP connection
-		ln, err := net.ListenUDP("udp", udpAddr)
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
-		ln.SetReadBuffer(maxDatagramSize)
-		defer ln.Close()
-
-		log.Println("Server up over proto", *proto, "and listening on port", *netPort)
-
-		for {
-			// wait for UDP client to connect
-			handleUDPConnection(ln)
-		}
 	}
-
 }
 
 func handleUDPConnection(conn *net.UDPConn) {
