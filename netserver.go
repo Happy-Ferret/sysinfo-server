@@ -13,9 +13,9 @@ const (
 )
 
 func startNetServer() {
-	service := "0.0.0.0:" + *netPort
+	service := "0.0.0.0:" + netPort
 
-	switch p := *proto; p {
+	switch p := proto; p {
 	case "udp":
 		// udp
 		udpAddr, err := net.ResolveUDPAddr("udp4", service)
@@ -30,7 +30,7 @@ func startNetServer() {
 		ln.SetReadBuffer(maxDatagramSize)
 		defer ln.Close()
 
-		log.Println("Server up over proto", *proto, "and listening on port", *netPort)
+		log.Println("Server up over proto", proto, "and listening on port", netPort)
 
 		for {
 			// wait for UDP client to connect
@@ -50,7 +50,7 @@ func startNetServer() {
 		}
 		defer ln.Close()
 
-		fmt.Println("Server up over proto", *proto, "and listening on port", *netPort)
+		fmt.Println("Server up over proto", proto, "and listening on port", netPort)
 
 		for {
 			// wait for TCP client to connect
