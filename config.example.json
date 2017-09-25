@@ -1,0 +1,16 @@
+{
+  "net": {
+    "port": "9000",
+    "proto": "tcp"
+  },
+  "web": {
+    "port": "8088"
+  },
+  "db": {
+    "user": "sysinfo",
+    "password": "sysinfo",
+    "dbname": "sysinfo",
+    "host": "127.0.0.1"
+  }
+
+}

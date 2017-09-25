@@ -2,57 +2,38 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
-	"net"
-	"time"
 
-	"github.com/boltdb/bolt"
-)
-
-const (
-	maxDatagramSize = 4096
+	"github.com/spf13/viper"
 )
 
 var (
-	host   = flag.String("host", "0.0.0.0", "The sysinfo-server address.")
-	uport  = flag.String("uport", "9000", "The sysinfo-server udp port.")
-	tport  = flag.String("tport", "9000", "The sysinfo-server http managment port.")
-	dbFile = "bolt.db"
-	dbc    *bolt.DB
+	netPort, proto, webPort            string
+	dbuser, dbpassword, dbname, dbhost string
+	configFile                         = flag.String("configFile", "config.json", "The sysinfo-server confgiguration file.")
+	a                                  = App{}
 )
 
 func init() {
 	flag.Parse()
-	var err error
-	dbc, err = bolt.Open(dbFile, 0600, &bolt.Options{Timeout: 1 * time.Second})
-
-	if err != nil {
-		log.Fatal(err)
+	viper.SetConfigFile(*configFile)
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file, %s", err)
 	}
-	log.Println(dbc, "connected")
+	fmt.Printf("Using config: %s\n", viper.ConfigFileUsed())
+	netPort = viper.GetString("net.port")
+	proto = viper.GetString("net.proto")
+	webPort = viper.GetString("web.port")
+	dbuser := viper.GetString("db.user")
+	dbpassword := viper.GetString("db.password")
+	dbname := viper.GetString("db.dbname")
+	dbhost := viper.GetString("db.host")
+	a.Initialize(dbuser, dbpassword, dbname, dbhost)
+	ensureTableExists()
+	log.Println(netPort, proto, webPort, " is used")
 }
-
 func main() {
-	service := *host + ":" + *uport
-	defer dbc.Close()
-	udpAddr, err := net.ResolveUDPAddr("udp4", service)
-	if err != nil {
-		log.Fatalf("Error: %s", err)
-	}
-	// setup listener for incoming UDP connection
-	ln, err := net.ListenUDP("udp", udpAddr)
-	if err != nil {
-		log.Fatalf("Error: %s", err)
-	}
-	ln.SetReadBuffer(maxDatagramSize)
-	log.Println("Server up over proto udp and listening on port", *uport)
-	defer ln.Close()
-
-	go httpServer()
-	log.Println("HTTP managment Server up and listening on port", *tport)
-
-	for {
-		// wait for UDP client to connect
-		handleUDPConnection(ln)
-	}
+	go startNetServer()
+	a.Run(":" + webPort)
 }
