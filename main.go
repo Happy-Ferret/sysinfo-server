@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/spf13/viper"
@@ -21,7 +20,7 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
 	}
-	fmt.Printf("Using config: %s\n", viper.ConfigFileUsed())
+	log.Printf("Using config: %s\n", viper.ConfigFileUsed())
 	netPort = viper.GetString("net.port")
 	proto = viper.GetString("net.proto")
 	webPort = viper.GetString("web.port")
