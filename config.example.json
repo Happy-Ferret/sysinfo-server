@@ -4,7 +4,7 @@
     "proto": "tcp"
   },
   "web": {
-    "port": "8088",
+    "port": "8088"
   },
   "db": {
     "user": "sysinfo",

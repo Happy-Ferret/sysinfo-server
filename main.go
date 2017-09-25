@@ -31,7 +31,7 @@ func init() {
 	dbhost := viper.GetString("db.host")
 	a.Initialize(dbuser, dbpassword, dbname, dbhost)
 	ensureTableExists()
-	log.Println(netPort, proto, webPort, "+ is used")
+	log.Println(netPort, proto, webPort, " is used")
 }
 func main() {
 	go startNetServer()

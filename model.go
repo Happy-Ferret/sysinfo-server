@@ -3,11 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"strings"
-
-	"github.com/spf13/viper"
 )
 
 const tableCreationQuery = `CREATE TABLE IF NOT EXISTS servers
@@ -88,7 +85,6 @@ func getSysInfoByMI(db *sql.DB, machineid string) (SysInfo, error) {
 func writeDataToDB(db *sql.DB, msg []byte) error {
 	var si SysInfo
 	var err error
-	fmt.Printf("Using config: %s\n", viper.ConfigFileUsed())
 
 	err = json.Unmarshal(msg, &si)
 	if err != nil {
