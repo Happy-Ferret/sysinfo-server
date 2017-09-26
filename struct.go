@@ -16,6 +16,7 @@ type SysInfo struct {
 	Node    Node            `json:"node,omitempty"`
 	OS      OS              `json:"os,omitempty"`
 	Kernel  Kernel          `json:"kernel,omitempty"`
+	Product Product         `json:"product,omitempty"`
 	CPU     CPU             `json:"cpu,omitempty"`
 	Memory  Memory          `json:"memory,omitempty"`
 	LVM     []LogicalVolume `json:"lvm,omitempty"`
@@ -63,4 +64,12 @@ type NetworkDevice struct {
 	Name       string `json:"name,omitempty"`
 	MACAddress string `json:"macaddress,omitempty"`
 	IP         string `json:"ip,omitempty"`
+}
+
+// Product description.
+type Product struct {
+	Name    string `json:"name,omitempty"`
+	Vendor  string `json:"vendor,omitempty"`
+	Version string `json:"version,omitempty"`
+	Serial  string `json:"serial,omitempty"`
 }
